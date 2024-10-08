@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferramentas de Estudos Funcionais</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, rgba(128,0,128,0.5), rgba(0,128,255,0.5), rgba(0,255,0,0.5), rgba(255,0,0,0.5), rgba(0,0,0,0.5));
+            color: white;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid white;
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-top: 1px solid white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ferramentas de Estudos Funcionais</h1>
+    
+    <section>
+        <h2>Resumo de PDFs</h2>
+        <input type="file" id="pdfInput" accept=".pdf">
+        <button onclick="resumirPDF()">Resumir PDF</button>
+        <p id="resumo"></p>
+    </section>
+
+    <section>
+        <h2>Perguntas e Respostas</h2>
+        <input type="text" id="pergunta" placeholder="Digite sua pergunta">
+        <button onclick="responder()">Responder</button>
+        <p id="resposta"></p>
+    </section>
+
+    <footer>
+        <p id="horaBrasilia"></p>
+    </footer>
+
+    <script>
+        async function resumirPDF() {
+            const file = document.getElementById('pdfInput').files[0];
+            if (!file) return;
+
+            const fileReader = new FileReader();
+            fileReader.onload = async function() {
+                const typedarray = new Uint8Array(this.result);
+                const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                let texto = '';
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    const items = content.items.map(item => item.str).join(' ');
+                    texto += items + ' ';
+                }
+
+                const resumo = texto.slice(0, 300) + '...'; // Limite de 300 caracteres
+                document.getElementById('resumo').innerText = resumo;
+            };
+            fileReader.readAsArrayBuffer(file);
+        }
+
+        function responder() {
+            const pergunta = document.getElementById('pergunta').value;
+            document.getElementById('resposta').innerText = "Resposta para: " + pergunta;
+        }
+
+        function atualizarHora() {
+            const now = new Date();
+            const options = { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            const horaBrasilia = now.toLocaleTimeString('pt-BR', options);
+            document.getElementById('horaBrasilia').innerText = "Horário de Brasília: " + horaBrasilia;
+        }
+
+        setInterval(atualizarHora, 1000);
+        atualizarHora();
+    </script>
+</body>
+</html>
